@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ShoppingCart, Eye, Plus, Search, Layers } from 'lucide-react';
 import { productService } from '../api/client';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -12,6 +13,7 @@ const ProductList = () => {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
 
   const { addToCart } = useCart();
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     fetchProducts();
@@ -93,13 +95,15 @@ const ProductList = () => {
             ))}
           </select>
 
-          <button
-            onClick={seedSampleProduct}
-            className="flex items-center space-x-1.5 bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-slate-800 transition"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span>Add Sample Product</span>
-          </button>
+          {isAdmin && (
+            <button
+              onClick={seedSampleProduct}
+              className="flex items-center space-x-1.5 bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-slate-800 transition"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>Add Sample Product</span>
+            </button>
+          )}
         </div>
       </div>
 
