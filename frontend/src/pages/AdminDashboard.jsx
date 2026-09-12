@@ -124,10 +124,10 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleDeleteProduct = async (id) => {
-    if (!window.confirm("Delete this product from catalog?")) return;
+  const handleDeleteProduct = async (product) => {
+    if (!window.confirm(`Are you sure you want to delete "${product.name}" (ID #${product.id}) from the store catalog?`)) return;
     try {
-      await productService.deleteProduct(id);
+      await productService.deleteProduct(product.id);
       fetchData();
     } catch (err) {
       alert("Delete failed: " + (err.response?.data?.message || err.message));
@@ -241,7 +241,7 @@ const AdminDashboard = () => {
                           <Edit3 className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteProduct(p.id)}
+                          onClick={() => handleDeleteProduct(p)}
                           className="p-1.5 text-slate-600 hover:text-rose-600 transition"
                           title="Delete Product"
                         >
