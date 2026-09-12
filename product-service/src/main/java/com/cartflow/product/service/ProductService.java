@@ -91,31 +91,30 @@ public class ProductService {
     @Transactional
     @CacheEvict(value = "products", allEntries = true)
     public ProductResponse reduceStock(Long id, Integer quantity) {
-        log.info("Reducing stock for product id: {}, quantity: {}", id, quantity);
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
-
-        if (product.getStock() < quantity) {
-            throw new IllegalArgumentException("Insufficient stock for product '" + product.getName() + "'. Available: " + product.getStock() + ", Requested: " + quantity);
+        log.info("Attempting atomic stock reduction for product id: {}, quantity: {}", id, quantity);
+        int rowsUpdated = productRepository.reduceStockAtomic(id, quantity);
+        if (rowsUpdated == 0) {
+            Product product = productRepository.findById(id).orElse(null);
+            int availableStock = product != null ? product.getStock() : 0;
+            String productName = product != null ? product.getName() : "ID #" + id;
+            throw new IllegalArgumentException("Insufficient stock for product '" + productName + "'. Available: " + availableStock + ", Requested: " + quantity);
         }
 
-        product.setStock(product.getStock() - quantity);
-        Product savedProduct = productRepository.save(product);
-        log.info("Stock reduced for product id: {}. New stock: {}", id, savedProduct.getStock());
-        return mapToProductResponse(savedProduct);
+        Product updatedProduct = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+        log.info("Stock reduced atomically for product id: {}. Remaining stock: {}", id, updatedProduct.getStock());
+        return mapToProductResponse(updatedProduct);
     }
 
     @Transactional
     @CacheEvict(value = "products", allEntries = true)
     public ProductResponse restoreStock(Long id, Integer quantity) {
-        log.info("Restoring stock for product id: {}, quantity: {}", id, quantity);
-        Product product = productRepository.findById(id)
+        log.info("Restoring stock atomically for product id: {}, quantity: {}", id, quantity);
+        productRepository.restoreStockAtomic(id, quantity);
+        Product updatedProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
-
-        product.setStock(product.getStock() + quantity);
-        Product savedProduct = productRepository.save(product);
-        log.info("Stock restored for product id: {}. New stock: {}", id, savedProduct.getStock());
-        return mapToProductResponse(savedProduct);
+        log.info("Stock restored for product id: {}. New stock: {}", id, updatedProduct.getStock());
+        return mapToProductResponse(updatedProduct);
     }
 
     private ProductResponse mapToProductResponse(Product product) {
