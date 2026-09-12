@@ -1,5 +1,14 @@
 server:
   port: 8081
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 20
+    max-connections: 10000
+    accept-count: 200
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
 
 spring:
   application:
@@ -9,6 +18,12 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME:root}
     password: ${SPRING_DATASOURCE_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 30
+      minimum-idle: 10
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      connection-timeout: 20000
   jpa:
     hibernate:
       ddl-auto: update

@@ -7,6 +7,8 @@ import com.cartflow.product.exception.ResourceNotFoundException;
 import com.cartflow.product.repository.ProductRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,8 +26,9 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "products")
     public List<ProductResponse> getAllProducts() {
-        log.info("Fetching all products");
+        log.info("Fetching all products (cached)");
         return productRepository.findAll().stream()
                 .map(this::mapToProductResponse)
                 .toList();
@@ -40,6 +43,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public ProductResponse createProduct(ProductRequest productRequest) {
         log.info("Creating new product: {}", productRequest.getName());
         Product product = Product.builder()
@@ -56,6 +60,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public ProductResponse updateProduct(Long id, ProductRequest productRequest) {
         log.info("Updating product with id: {}", id);
         Product existingProduct = productRepository.findById(id)
@@ -73,6 +78,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public void deleteProduct(Long id) {
         log.info("Deleting product with id: {}", id);
         if (!productRepository.existsById(id)) {
@@ -83,6 +89,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public ProductResponse reduceStock(Long id, Integer quantity) {
         log.info("Reducing stock for product id: {}, quantity: {}", id, quantity);
         Product product = productRepository.findById(id)
@@ -99,6 +106,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public ProductResponse restoreStock(Long id, Integer quantity) {
         log.info("Restoring stock for product id: {}, quantity: {}", id, quantity);
         Product product = productRepository.findById(id)

@@ -1,11 +1,16 @@
 server:
   port: 8084
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
 
 spring:
   application:
     name: notification-service
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    listener:
+      concurrency: 5
     consumer:
       group-id: notification-group
       auto-offset-reset: earliest

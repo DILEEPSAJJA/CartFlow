@@ -1,11 +1,19 @@
 server:
   port: 8080
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
 
 spring:
   application:
     name: api-gateway
   cloud:
     gateway:
+      httpclient:
+        pool:
+          type: ELASTIC
+          max-connections: 500
+          acquire-timeout: 45000
       routes:
         - id: user-service-auth
           uri: ${USER_SERVICE_URL:http://localhost:8085}

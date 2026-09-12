@@ -3,6 +3,7 @@ services:
   mysql-product:
     image: mysql:8.0
     container_name: mysql-product
+    command: --max_connections=300 --innodb_buffer_pool_size=256M
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: product_db
@@ -20,6 +21,7 @@ services:
   mysql-order:
     image: mysql:8.0
     container_name: mysql-order
+    command: --max_connections=300 --innodb_buffer_pool_size=256M
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: order_db
@@ -37,6 +39,7 @@ services:
   mysql-payment:
     image: mysql:8.0
     container_name: mysql-payment
+    command: --max_connections=300 --innodb_buffer_pool_size=256M
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: payment_db
@@ -54,6 +57,7 @@ services:
   mysql-user:
     image: mysql:8.0
     container_name: mysql-user
+    command: --max_connections=300 --innodb_buffer_pool_size=256M
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: user_db
