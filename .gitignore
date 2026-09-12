@@ -1,0 +1,26 @@
+# Maven build outputs
+target/
+*.jar
+*.war
+*.ear
+
+# Node / React build outputs
+node_modules/
+frontend/dist/
+frontend/node_modules/
+.npm/
+
+# IDE & Editor files
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env

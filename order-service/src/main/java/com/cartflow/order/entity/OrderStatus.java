@@ -1,0 +1,17 @@
+package com.cartflow.order.entity;
+
+public enum OrderStatus {
+    CREATED,
+    PAYMENT_PENDING,
+    PAYMENT_SUCCESS,
+    PAYMENT_FAILED,
+    CONFIRMED,
+    PROCESSING,
+    IN_TRANSIT,
+    OUT_FOR_DELIVERY,
+    DELIVERED,
+    CANCELLED,
+    RETURN_REQUESTED,
+    REFUNDED,
+    PAYMENT_SERVICE_UNAVAILABLE
+}
