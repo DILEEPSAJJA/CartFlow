@@ -176,6 +176,10 @@ public class OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
 
+        if (order.getStatus() != OrderStatus.DELIVERED) {
+            throw new IllegalStateException("Return and refund can only be requested after the product is delivered.");
+        }
+
         order.setStatus(OrderStatus.RETURN_REQUESTED);
         if (reason != null && !reason.trim().isEmpty()) {
             order.setCancellationReason("Return: " + reason.trim());

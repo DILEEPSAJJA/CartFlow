@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Ban, CheckCircle, Package, Zap, Truck, RotateCcw, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Ban, CheckCircle, Package, Zap, Truck, RotateCcw, ChevronRight, ShieldCheck } from 'lucide-react';
 import { orderService } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import StatusBadge from '../components/StatusBadge';
 
 const OrderDetail = () => {
   const { id } = useParams();
+  const { user, isAdmin } = useAuth();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -140,6 +142,7 @@ const OrderDetail = () => {
 
   const currentStep = getStepIndex(order.status);
   const isCancelled = order.status === 'CANCELLED';
+  const isDelivered = order.status === 'DELIVERED';
   const isReturnOrRefund = order.status === 'RETURN_REQUESTED' || order.status === 'REFUNDED';
 
   return (
@@ -164,18 +167,26 @@ const OrderDetail = () => {
           <div className="flex items-center space-x-2">
             {!isCancelled && !isReturnOrRefund && (
               <>
+                {!isDelivered && (
+                  <button
+                    onClick={() => setShowCancelModal(true)}
+                    disabled={cancelling}
+                    className="flex items-center space-x-1.5 px-3.5 py-2 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl hover:bg-rose-100 transition"
+                  >
+                    <Ban className="h-3.5 w-3.5" />
+                    <span>Cancel Order</span>
+                  </button>
+                )}
+
                 <button
-                  onClick={() => setShowCancelModal(true)}
-                  disabled={cancelling}
-                  className="flex items-center space-x-1.5 px-3.5 py-2 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl hover:bg-rose-100 transition"
-                >
-                  <Ban className="h-3.5 w-3.5" />
-                  <span>Cancel Order</span>
-                </button>
-                
-                <button
-                  onClick={() => setShowReturnModal(true)}
-                  className="flex items-center space-x-1.5 px-3.5 py-2 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold rounded-xl hover:bg-amber-100 transition"
+                  onClick={() => isDelivered && setShowReturnModal(true)}
+                  disabled={!isDelivered}
+                  title={!isDelivered ? "Return & Refund option is enabled only after the product is delivered" : "Request Return & Refund"}
+                  className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl transition ${
+                    isDelivered
+                      ? 'bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100 cursor-pointer'
+                      : 'bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed opacity-75'
+                  }`}
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
                   <span>Return & Refund</span>
@@ -188,25 +199,34 @@ const OrderDetail = () => {
         {/* Live Shipment Tracking Stepper */}
         {!isCancelled && !isReturnOrRefund && (
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2">
               <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
                 <Truck className="h-4 w-4 text-sky-600" /> Package Tracking & Live Delivery Status
               </h3>
-              {/* Quick Status Advance Control */}
-              <div className="flex items-center space-x-1">
-                <span className="text-[11px] font-bold text-slate-500 uppercase mr-1">Simulate Move:</span>
-                {TRACKING_STEPS.map((st) => (
-                  <button
-                    key={st.key}
-                    onClick={() => handleUpdateStatus(st.key)}
-                    className={`px-2 py-1 text-[10px] font-bold rounded transition ${
-                      order.status === st.key ? 'bg-sky-600 text-white' : 'bg-white border text-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    {st.label}
-                  </button>
-                ))}
-              </div>
+              
+              {/* Quick Status Advance Control - ADMIN ONLY */}
+              {isAdmin ? (
+                <div className="flex items-center space-x-1 bg-white p-1 rounded-xl border border-slate-200 shadow-xs">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase px-1 flex items-center gap-1">
+                    <ShieldCheck className="h-3 w-3 text-sky-600" /> Admin Update:
+                  </span>
+                  {TRACKING_STEPS.map((st) => (
+                    <button
+                      key={st.key}
+                      onClick={() => handleUpdateStatus(st.key)}
+                      className={`px-2 py-1 text-[10px] font-bold rounded transition ${
+                        order.status === st.key ? 'bg-sky-600 text-white' : 'bg-slate-50 border text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      {st.label}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-xs font-medium text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+                  Live Customer Tracking View
+                </span>
+              )}
             </div>
 
             <div className="relative flex items-center justify-between max-w-2xl mx-auto py-4">
@@ -270,13 +290,19 @@ const OrderDetail = () => {
               )}
               {order.status === 'RETURN_REQUESTED' ? (
                 <div className="flex items-center space-x-2 mt-2">
-                  <span className="text-[11px] text-amber-700">Admin action demo:</span>
-                  <button
-                    onClick={() => handleUpdateStatus('REFUNDED')}
-                    className="px-3 py-1 bg-amber-600 text-white rounded text-[11px] font-bold hover:bg-amber-700 transition"
-                  >
-                    Approve & Issue Full Refund
-                  </button>
+                  {isAdmin ? (
+                    <>
+                      <span className="text-[11px] text-amber-700 font-bold">Admin Action:</span>
+                      <button
+                        onClick={() => handleUpdateStatus('REFUNDED')}
+                        className="px-3 py-1 bg-amber-600 text-white rounded text-[11px] font-bold hover:bg-amber-700 transition"
+                      >
+                        Approve & Issue Full Refund
+                      </button>
+                    </>
+                  ) : (
+                    <p className="text-[11px] text-amber-800 font-semibold">Your return request has been submitted and is under review by support.</p>
+                  )}
                 </div>
               ) : (
                 <p className="text-[11px] text-emerald-700 font-semibold">Product stock restored and funds refunded to customer.</p>

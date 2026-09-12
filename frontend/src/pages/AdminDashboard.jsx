@@ -115,6 +115,15 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+    try {
+      await orderService.updateOrderStatus(orderId, newStatus);
+      fetchData();
+    } catch (err) {
+      alert("Failed to update status: " + (err.response?.data?.message || err.message));
+    }
+  };
+
   const handleDeleteProduct = async (id) => {
     if (!window.confirm("Delete this product from catalog?")) return;
     try {
@@ -281,7 +290,23 @@ const AdminDashboard = () => {
                       <td className="px-6 py-4 font-bold text-gray-900">#{o.id}</td>
                       <td className="px-6 py-4">Customer #{o.customerId}</td>
                       <td className="px-6 py-4 font-bold text-slate-900">${parseFloat(o.totalAmount).toFixed(2)}</td>
-                      <td className="px-6 py-4"><StatusBadge status={o.status} /></td>
+                      <td className="px-6 py-4 flex items-center space-x-2">
+                        <StatusBadge status={o.status} />
+                        <select
+                          value={o.status}
+                          onChange={(e) => handleUpdateOrderStatus(o.id, e.target.value)}
+                          className="text-xs border border-gray-300 rounded-lg p-1 bg-white focus:ring-2 focus:ring-sky-500 font-medium cursor-pointer"
+                        >
+                          <option value="CONFIRMED">Order Placed</option>
+                          <option value="PROCESSING">Package Started</option>
+                          <option value="IN_TRANSIT">In Transit</option>
+                          <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
+                          <option value="DELIVERED">Delivered</option>
+                          <option value="CANCELLED">Cancelled</option>
+                          <option value="RETURN_REQUESTED">Return Requested</option>
+                          <option value="REFUNDED">Refunded</option>
+                        </select>
+                      </td>
                       <td className="px-6 py-4 text-right">
                         <button
                           onClick={() => navigate(`/orders/${o.id}`)}
